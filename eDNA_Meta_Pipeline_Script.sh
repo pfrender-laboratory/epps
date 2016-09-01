@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function WAIT () {
+WAIT () {
   # Description:
   # This takes a qstat job (as $1) and sleeps until its finished
   if [[ $( qstat -j $1) =~ "job_number" ]]
@@ -109,4 +109,9 @@ done
 MSG "LOG set to: $LOG, PRIMER FILE set to:$PRIMERS, RAW DATA DIRECTORY set to $RAW_DATA_DIRECTORY, and WORK DIRECTORY set to: $WORK_DIR"
 CONTINUE "Continue with current configuration?"
 
-
+# Create work directory if it doesn't exist
+# Create Samples folder
+# Make softlinks to raw data
+# add relevant raw data to fas file
+# run eDNA pipeline
+# run other pipelines
