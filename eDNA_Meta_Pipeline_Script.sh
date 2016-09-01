@@ -6,7 +6,7 @@ WAIT () {
   if [[ $( qstat -j $1) =~ "job_number" ]]
     then
       sleep 5;
-      wait_till_complete $1
+      WAIT $1
   fi
 }
 
