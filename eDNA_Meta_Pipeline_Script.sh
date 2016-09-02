@@ -22,7 +22,7 @@ HELP() {
 \t-h displays the help file and exits (what this is)
 \t-V is the Version, it will print the version and exit
 \t-f is \"force\" it can be used if you'd like to run everything in the background
-\t-l is the log file, it is required
+\t-l is the log file, it is required if you are in force mode
 \t-p is the primers file (what primers were used), it is required
 \t-r is the raw data directory (where the .fastq.gz files are), it is required
 \t-w is the work directory (everything will be done in here), it is required
@@ -50,17 +50,17 @@ CONTINUE() {
   # Description:
   # Propmts the user for yes or no, then either coninues the program or exits the program
 
-  if [ -z "$force" ]; then
+  if [ -z "$FORCE" ]; then
     echo "$1" >&2;
     read cont
     case "$cont" in
       Y|y|yes|Yes|YES )
       ;;
       N|n|no|No|NO )
-        MSG "NO ENTERED, exiting"; rm -rf ~/.releases/$NAME ; exit 1;
+        MSG "NO ENTERED, exiting"; exit 1;
       ;;
       *) 
-        echo "Invalid input You entered: $cont" >&2;
+        MSG "Invalid input You entered: $cont" >&2;
 	    CONTINUE
       ;;
     esac
@@ -109,9 +109,21 @@ done
 MSG "LOG set to: $LOG, PRIMER FILE set to:$PRIMERS, RAW DATA DIRECTORY set to $RAW_DATA_DIRECTORY, and WORK DIRECTORY set to: $WORK_DIR"
 CONTINUE "Continue with current configuration?"
 
+#Prep for runs
+mkdir $WORK_DIR || MSG "could not create work directory, perhaps it already exists"
+mkdir $WORK_DIR/raw_data || MSG "could not create raw data directory, perhaps it already exists"
+mkdir $WORK_DIR/work_space || MSG "could not create work space direcoty, perhaps it already exists"
+mkdir $WORK_DIR/work_space/Samples || "could not create Samples dir
+for f in "$RAW_DATA_DIRECTORY/*"; do ln -s $f $WORK_DIR/raw_data; done
+FQ_LIST="$(find $WORK_DIR/raw_data -iname '*.fastq.gz')"
+PRIMERS_LOC="$WORK_DIR/work_space/primer.fas"
+
 # Create work directory if it doesn't exist
 # Create Samples folder
 # Make softlinks to raw data
+# Create fq list
 # add relevant raw data to fas file
 # run eDNA pipeline
+eDNA_pipeline.pl -l /point/to/directory/fq.list -o /point/to/output/directory -dm Y -pm /point/to/directory/primer.fas -p NA
+
 # run other pipelines
