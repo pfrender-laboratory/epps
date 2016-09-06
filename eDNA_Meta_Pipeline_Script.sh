@@ -113,17 +113,32 @@ CONTINUE "Continue with current configuration?"
 mkdir $WORK_DIR || MSG "could not create work directory, perhaps it already exists"
 mkdir $WORK_DIR/raw_data || MSG "could not create raw data directory, perhaps it already exists"
 mkdir $WORK_DIR/work_space || MSG "could not create work space direcoty, perhaps it already exists"
-mkdir $WORK_DIR/work_space/Samples || "could not create Samples dir
+mkdir $WORK_DIR/work_space/Samples || "could not create Samples dir, perhaps it already exists"
 for f in "$RAW_DATA_DIRECTORY/*"; do ln -s $f $WORK_DIR/raw_data; done
 FQ_LIST="$(find $WORK_DIR/raw_data -iname '*.fastq.gz')"
 PRIMERS_LOC="$WORK_DIR/work_space/primer.fas"
 
-# Create work directory if it doesn't exist
-# Create Samples folder
-# Make softlinks to raw data
-# Create fq list
-# add relevant raw data to fas file
-# run eDNA pipeline
-eDNA_pipeline.pl -l /point/to/directory/fq.list -o /point/to/output/directory -dm Y -pm /point/to/directory/primer.fas -p NA
+#Move primers, create fq list file
+cp $PRIMERS $WORK_DIR/work_space/primer.fas || { MSG "could not move primers, exiting."; exit 1; }
+printf $FQ_LIST >> $WORK_DIR/work_space/fq.list || { MSG "could not create fq list, exiting."; exit 1; }
 
-# run other pipelines
+MSG "primers are now:\n$( cat $WORK_DIR/work_space/primer.fas )"
+MSG "list of fastq files is now:\n$( cat $WORK_DIR/work_space/fq.list )"
+
+CONTINUE "Continue with current fastq files and current primers?"
+
+#Run eDNA_pipeline script
+MSG "Running eDNA_pipeline.pl script"
+MSG "$( perl eDNA_pipeline.pl -l $WORK_DIR/work_space/fq.list -o $WORK_DIR/work_space -dm Y -pm $WORK_DIR/work_space/primer.fas -p NA )" 
+
+CONTINUE "Continue with qsub submissions?"
+
+#qsub other scripts
+cd $WORK_DIR/work_space/Samples/
+WAIT "$( qsub batch_filter.sh | grep -oP '\d+' | head -n 1 )"
+
+for f in "$( ls $WORK_DIR/work_space/Samples/batch_* | grep -v "filter" )"; do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )";  done 
+
+cd $WORK_DIR/work_space
+
+for f in "$( ls $WORK_DIR/work_space/Samples/ALL_* )"; do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )"; done
