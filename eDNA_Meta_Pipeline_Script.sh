@@ -104,7 +104,7 @@ done
 
 #check that primers and raw data direcoty are things
 [ ! -f "$PRIMERS" ] && { MSG "Script can not find primers file, exiting."; exit 1; }
-[ "$(ls -A $RAW_DATA_DIRECTORY)" ] && { MSG "Script can not find raw data directory or direcotry is empty, exiting."; exit 1; }
+[ "$(ls -A $RAW_DATA_DIRECTORY)" ] || { MSG "Script can not find raw data directory or direcotry is empty, exiting."; exit 1; }
 
 MSG "LOG set to: $LOG, PRIMER FILE set to:$PRIMERS, RAW DATA DIRECTORY set to $RAW_DATA_DIRECTORY, and WORK DIRECTORY set to: $WORK_DIR"
 CONTINUE "Continue with current configuration?"
@@ -122,7 +122,7 @@ PRIMERS_LOC="$WORK_DIR/work_space/primer.fas"
 cp $PRIMERS $WORK_DIR/work_space/primer.fas || { MSG "could not move primers, exiting."; exit 1; }
 printf $FQ_LIST >> $WORK_DIR/work_space/fq.list || { MSG "could not create fq list, exiting."; exit 1; }
 
-MSG "primers are now:\n$( cat $WORK_DIR/work_space/primer.fas )"
+MSG "primers are now:$( cat $WORK_DIR/work_space/primer.fas )"
 MSG "list of fastq files is now:\n$( cat $WORK_DIR/work_space/fq.list )"
 
 CONTINUE "Continue with current fastq files and current primers?"
@@ -134,11 +134,18 @@ MSG "$( perl eDNA_pipeline.pl -l $WORK_DIR/work_space/fq.list -o $WORK_DIR/work_
 CONTINUE "Continue with qsub submissions?"
 
 #qsub other scripts
+MSG "moving to samples folder"
 cd $WORK_DIR/work_space/Samples/
+MSG "now in the $( pwd ) folder"
+MSG "qsubing batch_filter"
 WAIT "$( qsub batch_filter.sh | grep -oP '\d+' | head -n 1 )"
 
-for f in "$( ls $WORK_DIR/work_space/Samples/batch_* | grep -v "filter" )"; do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )";  done 
+MSG "qsubing other filters"
+for f in $( ls batch_* | grep -v "filter" ); do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )";  done 
 
-cd $WORK_DIR/work_space
+MSG "moving back to work directory"
+cd ..
+MSG "now in the $( pwd ) directory"
 
-for f in "$( ls $WORK_DIR/work_space/Samples/ALL_* )"; do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )"; done
+MSG "qsubing the primers"
+for f in $( ls All_* ); do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )"; done
