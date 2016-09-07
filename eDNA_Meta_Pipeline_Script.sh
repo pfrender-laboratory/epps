@@ -100,7 +100,7 @@ done
 
 #check logging and interactive mode requirements
 [ ! -z "$force" ] && MSG "Script running in force mode, this is not recomended";
-[ -z "$LOG" ] && { MSG "Script running in non-interactive shell without Logging, exiting"; exit 1; }
+[ ! -z "$force" ] && { [ -z "$LOG" ] && { MSG "Script running in non-interactive shell without Logging, exiting"; exit 1; } }
 
 #check that primers and raw data direcoty are things
 [ ! -f "$PRIMERS" ] && { MSG "Script can not find primers file, exiting."; exit 1; }
