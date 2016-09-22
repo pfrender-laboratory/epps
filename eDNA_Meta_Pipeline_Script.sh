@@ -100,7 +100,7 @@ done
 
 #check logging and interactive mode requirements
 [ ! -z "$force" ] && MSG "Script running in force mode, this is not recomended";
-[ ! -z "$force" ] && { [ -z "$LOG" ] && { MSG "Script running in non-interactive shell without Logging, exiting"; exit 1; } }
+[ -z "$LOG" ] && { MSG "Script running in non-interactive shell without Logging, exiting"; exit 1; }
 
 #check that primers and raw data direcoty are things
 [ ! -f "$PRIMERS" ] && { MSG "Script can not find primers file, exiting."; exit 1; }
@@ -149,6 +149,3 @@ MSG "now in the $( pwd ) directory"
 
 MSG "qsubing the primers"
 for f in $( ls All_* ); do WAIT "$( qsub $f | grep -oP '\d+' | head -n 1 )"; done
-
-MSG "running sap"
-for f in $( ls -d */ | grep 'All_' ); do d=$( ls $f | grep '.sap.sh' ); cd $f; WAIT "$( qsub $d | grep -oP '\d+' | head -n 1 )"; cd ..; done 
