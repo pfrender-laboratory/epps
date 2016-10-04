@@ -1,0 +1,10 @@
+#!/afs/crc.nd.edu/x86_64_linux/python/2.7.8/bin/python
+# EASY-INSTALL-ENTRY-SCRIPT: 'SAP==1.9.4','console_scripts','sap'
+__requires__ = 'SAP==1.9.4'
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.exit(
+        load_entry_point('SAP==1.9.4', 'console_scripts', 'sap')()
+    )
