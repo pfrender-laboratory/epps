@@ -1,5 +1,10 @@
 #!/bin/bash
 
+EPPS_PREFIX () {
+  # basically an ls at where the epps script is, minus epps
+  # TODO
+}
+
 WAIT () {
   # Description:
   # This takes a qstat job (as $1) and sleeps until its finished
