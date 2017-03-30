@@ -1,10 +1,5 @@
 #!/bin/bash
 
-EPPS_PREFIX () {
-  # basically an ls at where the epps script is, minus epps
-  # TODO
-}
-
 WAIT () {
   # Description:
   # This takes a qstat job (as $1) and sleeps until its finished
@@ -27,6 +22,7 @@ HELP() {
 \t-h displays the help file and exits (what this is)
 \t-V is the Version, it will print the version and exit
 \t-f is \"force\" it can be used if you'd like to run everything in the background
+\t-l is the log file, it is required if you are in force mode
 \t-p is the primers file (what primers were used), it is required
 \t-r is the raw data directory (where the .fastq.gz files are), it is required
 \t-w is the work directory (everything will be done in here), it is required
@@ -45,7 +41,9 @@ VERSION() {
 MSG() {
   # Description:
   # Outputs the log formated message, either to std out or to the log
+
   [ -t 1 ] && echo "[ $(date) ]: $1" >&2;
+  [ ! -z "$LOG" ] && echo "[ $(date) ]: $1" >> "$LOG"
 }
 
 CONTINUE() {
@@ -73,7 +71,7 @@ CONTINUE() {
 # Start of main program #
 # - - - - - - - - - - - #
 
-while getopts ":hVfp:r:w:" opt; do
+while getopts ":hVfl:p:r:w:" opt; do
  case "${opt}" in
   h)
     HELP; 
@@ -83,6 +81,9 @@ while getopts ":hVfp:r:w:" opt; do
   ;;
   f)
     FORCE="on";
+  ;;
+  l)
+    LOG=${OPTARG};
   ;;
   p)
     PRIMERS=${OPTARG};
@@ -99,12 +100,13 @@ done
 
 #check logging and interactive mode requirements
 [ ! -z "$force" ] && MSG "Script running in force mode, this is not recomended";
+[ -z "$LOG" ] && { MSG "Script running in non-interactive shell without Logging, exiting"; exit 1; }
 
 #check that primers and raw data direcoty are things
 [ ! -f "$PRIMERS" ] && { MSG "Script can not find primers file, exiting."; exit 1; }
 [ "$(ls -A $RAW_DATA_DIRECTORY)" ] || { MSG "Script can not find raw data directory or direcotry is empty, exiting."; exit 1; }
 
-MSG "PRIMER FILE set to:$PRIMERS, RAW DATA DIRECTORY set to $RAW_DATA_DIRECTORY, and WORK DIRECTORY set to: $WORK_DIR"
+MSG "LOG set to: $LOG, PRIMER FILE set to:$PRIMERS, RAW DATA DIRECTORY set to $RAW_DATA_DIRECTORY, and WORK DIRECTORY set to: $WORK_DIR"
 CONTINUE "Continue with current configuration?"
 
 #Prep for runs
